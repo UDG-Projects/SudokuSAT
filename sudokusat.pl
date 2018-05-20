@@ -46,16 +46,26 @@ simplif(Lit, [PRIMERA|CUA], CNFS) :- simplif(Lit, CUA, CUACNFS), % Crida recursi
 %%%%%%%%%%%%%%
 % negat(A,ANEG)
 % Donat un literal enter torna el seu negat
-negat(A, ANEG) :- ANEG is 0-A.
-negat([A,B], ANEG) :- append([C], [D], ANEG), negat(A,C), negat(B,D).
+negat([A], [ANEG]) :- ANEG is 0-A.
+negat([A,B], [C,D]) :-   negat([A],[C]), negat([B],[D]) .
 
-montaParelles([], []).
-montaParelles([A,B], PARELLA) :- negat([A,B], PARELLA).
-montaParelles(L, PARELLES) :- append([A], CUA, L), append([B], BCUA,CUA), append([A],BCUA, EXCLOUB),
-                              negat([A,B], PARELLA),
-                              montaParelles(EXCLOUB, PARELLESA),
-                              montaParelles(CUA, PARELLESB),
-                              append(PARELLA, PARELLASA, P), append(P, PARELLESB, PARELLES).
+combinaINega([],[]).
+combinaINega([A,B],[NEGATS]):- negat([A,B],NEGATS),!.
+combinaINega(L,NEGATS):- append([A,B], CUA, L),
+                         negat([A,B], ITNEGAT), append([A],CUA, PIVOTA),
+                         combinaINega(PIVOTA,ITSEG), append([ITNEGAT],ITSEG,NEGATS),!.
+
+montaParelles([],[]).
+montaParelles([A,B], [NEGATS]):- negat([A,B],NEGATS),!.
+montaParelles(L, PARELLES):- append([A],CUA,L), combinaINega(L,PIVOTA), montaParelles(CUA,ITSEG), append(PIVOTA,ITSEG,PARELLES),!.
+
+%montaParelles([], []).
+%montaParelles([A,B], PARELLA) :- negat([A,B], PARELLA).
+%montaParelles(L, PARELLES) :- append([A], CUA, L), append([B], BCUA,CUA), append([A],BCUA, EXCLOUB),
+%                              negat([A,B], PARELLA),
+%                              montaParelles(EXCLOUB, PARELLESA),
+%                              montaParelles(CUA, PARELLESB),
+%                              append(PARELLA, PARELLESA, P), append(P, PARELLESB, PARELLES).
 
 %%%%%%%%%%%%%%%%%%%%%
 % exactamentUn(L,CNF)
