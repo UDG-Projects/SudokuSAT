@@ -12,7 +12,8 @@ sat(CNF,I,M):-
     simplif(Lit,CNF,CNFS),
 
     % crida recursiva amb la CNF i la interpretacio actualitzada
-    sat(... , ... ,M).
+	 append(I,[Lit],ISEG),
+    sat(CNFS,ISEG ,M).
 
 
 %%%%%%%%%%%%%%%%%% DONE MACARRONE!!
@@ -21,10 +22,15 @@ sat(CNF,I,M):-
 % -> el segon parametre sera un literal de CNF
 %  - si hi ha una clausula unitaria sera aquest literal, sino
 %  - un qualsevol o el seu negat.
-decideix([[A]], A).
-decideix([PL|CL], A) :- append([A], [], PL), !.
-decideix([PL|CL], A) :- CL \= [], decideix(CL, A), !.
-decideix([PL|CL], A) :- append([A],XS,PL).
+%decideix([[A]], A).
+%decideix([PL|_], A) :- append([A], [], PL).
+decideix(L,A):- append(_,[X|_], L), append([A],[],X),!. %detectar quan hi ha una llista amb 1 sol element a la posicio que sigui
+decideix([PL|_], A) :- append([A],_,PL).
+decideix([PL|_], B) :- append([A],_,PL), B is 0-A.
+%decideix([PL|_], A) :- append(_,[A|_],PL).
+%decideix([PL|_], B) :- append(_,[A|_],PL), B is 0-A.
+%decideix([_|CL], A) :- decideix(CL, A),!.
+
 
 %%%%%%%%%%%%%%%%%%%%%  DONE MACARRONE!!
 % simplif(Lit, CNF, CNFS)
@@ -33,58 +39,69 @@ decideix([PL|CL], A) :- append([A],XS,PL).
 %  - sense les clausules que tenen lit
 %  - treient -Lit de les clausules on hi es, si apareix la clausula buida fallara.
 simplif(_, [], []). % QUAN TINGUEM LA LLISTA BUIDA RETORNEM LA LLISTA BUIDA.
-simplif(Lit, [PRIMERA|CUA], CNFS) :- member(Lit, PRIMERA),  % Comprovem si conté lit a primera
-                                     simplif(Lit, CUA, CNFS), !. % seguim amb la cua.
-simplif(Lit, [PRIMERA|CUA], CNFS) :- X is 0-Lit, % neguem el literal i el fotem a x
-                                     append(A, [X|XS], PRIMERA), append(A, [XS], RES),  % Treure el literal negat a primera serà res
-                                     simplif(Lit, CUA, CUACNFS), % crida recursiva
-                                     append(RES, CUACNFS, CNFS), !. % Muntem la cadena final
-simplif(_, [PRIMERA|[]], [PRIMERA]). % Hem de filtrar la llista buida del final
-simplif(Lit, [PRIMERA|CUA], CNFS) :- simplif(Lit, CUA, CUACNFS), % Crida recursiva quan no conté Lit
-                                     append([PRIMERA], CUACNFS, CNFS), !. % Concatenar resultats
+simplif(Lit, [PRIMERA|CUA], CNFS) :- member(Lit, PRIMERA),  							% Comprovem si conté lit a primera
+                                     simplif(Lit, CUA, CNFS), !. 						% seguim amb la cua.
+simplif(Lit, [PRIMERA|CUA], CNFS) :- X is 0-Lit, 										% neguem el literal i el fotem a x
+                                     append(A, [X|XS], PRIMERA), append(A, XS, RES),  	% Treure el literal negat a primera serà res
+                                     simplif(Lit, CUA, CUACNFS), 						% crida recursiva
+                                     append([RES], CUACNFS, CNFS), !. 					% Muntem la cadena final
+simplif(Lit, [PRIMERA|CUA], CNFS) :- simplif(Lit, CUA, CUACNFS), 						% Crida recursiva quan no conté Lit
+                                     append([PRIMERA], CUACNFS, CNFS), !. 				% Concatenar resultats
+
+%simplif(Lit, [PRIMERA|CUA], CNFS) :- member(Lit, PRIMERA),  % Comprovem si conté lit a primera
+%                                     simplif(Lit, CUA, CNFS), !. % seguim amb la cua.
+%simplif(Lit, [PRIMERA|CUA], CNFS) :- X is 0-Lit, % neguem el literal i el fotem a x
+%                                     append(A, [X|XS], PRIMERA), append(A, [XS], RES),  % Treure el literal negat a primera serà res
+%                                     simplif(Lit, CUA, CUACNFS), % crida recursiva
+%                                     append(RES, CUACNFS, CNFS), !. % Muntem la cadena final
+%simplif(_, [PRIMERA|[]], [PRIMERA]). % Hem de filtrar la llista buida del final
+%simplif(Lit, [PRIMERA|CUA], CNFS) :- simplif(Lit, CUA, CUACNFS), % Crida recursiva quan no conté Lit
+%                                     append([PRIMERA], CUACNFS, CNFS), !. % Concatenar resultats
 
 %%%%%%%%%%%%%%
 % negat(A,ANEG)
-% Donat un literal enter torna el seu negat
-negat([A], [ANEG]) :- ANEG is 0-A.
-negat([A,B], [C,D]) :-   negat([A],[C]), negat([B],[D]) .
+% Donat una llista de literals enters torna una llista amb els literals enters negats.
+negat([],[]).
+negat([A],[ANEG]):- ANEG is 0-A,!.
+negat([A|CUA], [ANEG|CUANEG]):- negat([A],[ANEG]), negat(CUA,CUANEG).
 
-combinaINega([],[]).
-combinaINega([A,B],[NEGATS]):- negat([A,B],NEGATS),!.
-combinaINega(L,NEGATS):- append([A,B], CUA, L),
-                         negat([A,B], ITNEGAT), append([A],CUA, PIVOTA),
-                         combinaINega(PIVOTA,ITSEG), append([ITNEGAT],ITSEG,NEGATS),!.
+%negat([A], [ANEG]) :- ANEG is 0-A.
+%negat([A,B], [C,D]) :-   negat([A],[C]), negat([B],[D]) .
+
+
+%combinaINega([],[]).
+%combinaINega([A,B],[NEGATS]):- negat([A,B],NEGATS),!.
+%combinaINega(L,NEGATS):- append([A,B], CUA, L),
+%                         negat([A,B], ITNEGAT), append([A],CUA, PIVOTA),
+%                         combinaINega(PIVOTA,ITSEG), append([ITNEGAT],ITSEG,NEGATS),!.
+
+combina([],[]).
+combina([A],[[A]]).
+combina([A,B],[[A,B]]).
+combina(L, COMBINAT):- append([A,B], CUA, L),
+					   append([A],CUA,PIVOTA),
+					   combina(PIVOTA,ITSEG), append([[A,B]],ITSEG,COMBINAT),!.
+
 
 montaParelles([],[]).
-montaParelles([A,B], [NEGATS]):- negat([A,B],NEGATS),!.
-montaParelles(L, PARELLES):- append([A],CUA,L), combinaINega(L,PIVOTA), montaParelles(CUA,ITSEG), append(PIVOTA,ITSEG,PARELLES),!.
+montaParelles([A,B],[[A,B]]):-!.
+montaParelles(L, PARELLES):- append([_],CUA,L),
+							 combina(L,PIVOTA),
+							 montaParelles(CUA,ITSEG),
+							 append(PIVOTA,ITSEG,PARELLES),!.
 
-%montaParelles([], []).
-%montaParelles([A,B], PARELLA) :- negat([A,B], PARELLA).
-%montaParelles(L, PARELLES) :- append([A], CUA, L), append([B], BCUA,CUA), append([A],BCUA, EXCLOUB),
-%                              negat([A,B], PARELLA),
-%                              montaParelles(EXCLOUB, PARELLESA),
-%                              montaParelles(CUA, PARELLESB),
-%                              append(PARELLA, PARELLESA, P), append(P, PARELLESB, PARELLES).
+%montaParelles([],[]).
+%montaParelles([A,B], [NEGATS]):- negat([A,B],NEGATS),!.
+%montaParelles(L, PARELLES):- append([A],CUA,L), combinaINega(L,PIVOTA), montaParelles(CUA,ITSEG), append(PIVOTA,ITSEG,PARELLES),!.
+
 
 %%%%%%%%%%%%%%%%%%%%%
 % exactamentUn(L,CNF)
 % Donat una llista de variables booleanes,
 % -> el segon parametre sera la CNF que codifica que exactament una sigui certa.
-% exactamentUn([A], CNF) :-  append([[A]], [[B]], CNF), negat(A,B). %  P ^ !P...
-% exactamentUn([A,B], CNF) :- append([[A,B]], [[C, D]], CNF), C is 0-A, D is 0-B.
-%exactamentUn([], []).
-%exactamentUn([A,B], CNF) :- negat([A,B], NEGAT), append([A,B], NEGAT, CNF).
-%exactamentUn(L, CNF) :- append([A], CUA, L), write(A), nl, exactamentUn(CUA, CNF).
-%exactamentUn(L, CNF) :- append(PRIMERS, ULTIMS, L),
-%exactamentUn(L, CNF) :- append([A], CUA, L), append([B], BCUA,CUA), append([A],BCUA, RESTA),
-%                        exactamentUn(RESTA , CNF), exactamentUn(CUA, CNF)
-%                        , negat(A,C), negat(B,D),
-%                        append(C,D,NEGATS).
-%exactamentUn(L, CNF) :- append(P, [A|CUA], L), append(P, A, R), append(R, [B|BCUA], CUA),
-%                        append(C, D, NEGATS), negat(A,C), negat(B,D),
-%                        append([L], [NEGATS], CNF).
-
+exactamentUn([],[]).
+exactamentUn([A],[[A]]).
+exactamentUn(L,CNF):- negat(L, LNEG), montaParelles(LNEG,PARELLES), append([L],PARELLES, CNF).
 
 
 
