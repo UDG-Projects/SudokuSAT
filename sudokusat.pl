@@ -22,14 +22,9 @@ sat(CNF,I,M):-
 % -> el segon parametre sera un literal de CNF
 %  - si hi ha una clausula unitaria sera aquest literal, sino
 %  - un qualsevol o el seu negat.
-%decideix([[A]], A).
-%decideix([PL|_], A) :- append([A], [], PL).
-decideix(L,A):- append(_,[X|_], L), append([A],[],X),!. %detectar quan hi ha una llista amb 1 sol element a la posicio que sigui
-decideix([PL|_], A) :- append([A],_,PL).
-decideix([PL|_], B) :- append([A],_,PL), B is 0-A.
-%decideix([PL|_], A) :- append(_,[A|_],PL).
-%decideix([PL|_], B) :- append(_,[A|_],PL), B is 0-A.
-%decideix([_|CL], A) :- decideix(CL, A),!.
+decideix(L,A):- append(_,[X|_], L), append([A],[],X),!. % detectar clàusula unitària
+decideix([PL|_], A) :- append([A],_,PL). % Retorna el primer element
+decideix([PL|_], B) :- append([A],_,PL), B is 0-A. % Retorna el negat del primer element
 
 
 %%%%%%%%%%%%%%%%%%%%%  DONE MACARRONE!!
@@ -48,16 +43,6 @@ simplif(Lit, [PRIMERA|CUA], CNFS) :- X is 0-Lit, 										% neguem el literal i
 simplif(Lit, [PRIMERA|CUA], CNFS) :- simplif(Lit, CUA, CUACNFS), 						% Crida recursiva quan no conté Lit
                                      append([PRIMERA], CUACNFS, CNFS), !. 				% Concatenar resultats
 
-%simplif(Lit, [PRIMERA|CUA], CNFS) :- member(Lit, PRIMERA),  % Comprovem si conté lit a primera
-%                                     simplif(Lit, CUA, CNFS), !. % seguim amb la cua.
-%simplif(Lit, [PRIMERA|CUA], CNFS) :- X is 0-Lit, % neguem el literal i el fotem a x
-%                                     append(A, [X|XS], PRIMERA), append(A, [XS], RES),  % Treure el literal negat a primera serà res
-%                                     simplif(Lit, CUA, CUACNFS), % crida recursiva
-%                                     append(RES, CUACNFS, CNFS), !. % Muntem la cadena final
-%simplif(_, [PRIMERA|[]], [PRIMERA]). % Hem de filtrar la llista buida del final
-%simplif(Lit, [PRIMERA|CUA], CNFS) :- simplif(Lit, CUA, CUACNFS), % Crida recursiva quan no conté Lit
-%                                     append([PRIMERA], CUACNFS, CNFS), !. % Concatenar resultats
-
 %%%%%%%%%%%%%%
 % negat(A,ANEG)
 % Donat una llista de literals enters torna una llista amb els literals enters negats.
@@ -65,16 +50,9 @@ negat([],[]).
 negat([A],[ANEG]):- ANEG is 0-A,!.
 negat([A|CUA], [ANEG|CUANEG]):- negat([A],[ANEG]), negat(CUA,CUANEG).
 
-%negat([A], [ANEG]) :- ANEG is 0-A.
-%negat([A,B], [C,D]) :-   negat([A],[C]), negat([B],[D]) .
-
-
-%combinaINega([],[]).
-%combinaINega([A,B],[NEGATS]):- negat([A,B],NEGATS),!.
-%combinaINega(L,NEGATS):- append([A,B], CUA, L),
-%                         negat([A,B], ITNEGAT), append([A],CUA, PIVOTA),
-%                         combinaINega(PIVOTA,ITSEG), append([ITNEGAT],ITSEG,NEGATS),!.
-
+%%%%%%%%%%%%%%%%%%%%%
+% combina(L,COMBINAT)
+% ...
 combina([],[]).
 combina([A],[[A]]).
 combina([A,B],[[A,B]]).
@@ -82,17 +60,15 @@ combina(L, COMBINAT):- append([A,B], CUA, L),
 					   append([A],CUA,PIVOTA),
 					   combina(PIVOTA,ITSEG), append([[A,B]],ITSEG,COMBINAT),!.
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% montaParelles(L, PARELLES)
+% ...
 montaParelles([],[]).
 montaParelles([A,B],[[A,B]]):-!.
 montaParelles(L, PARELLES):- append([_],CUA,L),
 							 combina(L,PIVOTA),
 							 montaParelles(CUA,ITSEG),
 							 append(PIVOTA,ITSEG,PARELLES),!.
-
-%montaParelles([],[]).
-%montaParelles([A,B], [NEGATS]):- negat([A,B],NEGATS),!.
-%montaParelles(L, PARELLES):- append([A],CUA,L), combinaINega(L,PIVOTA), montaParelles(CUA,ITSEG), append(PIVOTA,ITSEG,PARELLES),!.
 
 
 %%%%%%%%%%%%%%%%%%%%%
@@ -104,14 +80,27 @@ exactamentUn([A],[[A]]).
 exactamentUn(L,CNF):- negat(L, LNEG), montaParelles(LNEG,PARELLES), append([L],PARELLES, CNF).
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% matExtreuPrimers(MAT, LLP, LLCUES)
+% Donada una matriu, retorna per separat la primera columna i la matriu restant.
+% -> MAT És la matriu que tractem
+% -> LLP És la llista amb els elements de la primera columna de mat
+% -> LLCUES És la matriu resultant a l'extracció.
+matExtreuPrimers([[]], [], []).
+matExtreuPrimers(MAT, LLP, LLCUES):- append([PRL], MATCUA, MAT), append([PR], CUA, PRL),
+                                     matExtreuPrimers(MATCUA, LLPRT, LLCUEST),
+                                     append(PR, LLPRT, LLP), append(CUA, LLCUEST, LLCUES).
 
 %%%%%%%%%%%%%%
 % allDiff(L,F)
 % Donat una llista (L) de Kdominis,
 % -> CNF  codifica que no poden prendre el mateix valor.
+%allDiff([[]|_],[]).
+%allDiff(L,CNF):-
 
-% allDiff([[]|_],[]).
-% allDiff(L,CNF):- ...
+% - Extraurem el primer literal de cada k-domini
+% - muntem una llista amb tots els literals extrets
+% - cridem a alldif amb totes les cues.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
