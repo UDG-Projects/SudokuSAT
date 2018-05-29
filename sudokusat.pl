@@ -159,8 +159,11 @@ festauler(N, T):- K is N*N*N, generaLLista(1, K, LL), separaPerN(N, LL, LLN), se
 % -> el tercer parametre sera la CNF formada de clausules unitaries que forcen els valors corresponents
 %    a les caselles corresponents (als N-dominis corresponents)
 
-% inicialitzar(_,[],[]):-!.
-% inicialitzar(N,...,...):- ...
+ inicialitzar(_,[],[]):-!.
+ inicialitzar(N,LI,CNF):- append([c(F,C,D)],Resta,LI),
+                               POS is N*N*(F-1) + (C-1)*N+D,
+                               inicialitzar(N,Resta,W),
+                               append([[POS]],W,CNF).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -180,16 +183,29 @@ codificaSudoku(N,Tauler,C0,CNF):-  kdominis(Tauler,C1),
 % kdominis(T,F)
 % Donat un Tauler,
 % -> el segon parametre es la CNF que codifica els exactamentUn per cada casella (K-domini)
-
+kdominis([],[]).
+kdominis([[]|T],F):-kdominis(T,F).
+kdominis(T,F):- append([PF],CUA,T), append([PE],CUAFILA,PF), exactamentUn(PE,CNF1),
+                append([CUAFILA],CUA,RESTA),kdominis(RESTA,CNFFINAL), append(CNF1,CNFFINAL,F),!.
 
 
 %%%%%%%%%%%%%%%%%%%
 % allDiffFiles(T,F)
 % Donat un Tauler,
 % -> el segon parametre es la CNF que codifica que no hi hagi repetits (allDiff) als K-dominis de cada fila
+allDiffFiles([],[]).
+allDiffFiles(T,F):- append([PF],CUA,T), allDiff(PF,CNF), allDiffFiles(CUA,CNFCUA),append(CNF,CNFCUA,F),!.
 
+matTransposa([],[]).
+matTransposa(MAT,RES):- append([PF],CUA,MAT), transposarFila(PF,PFT), matTransposa(CUA,REST),append(PFT,REST,RES).% matUnio(PFT,REST,RES).
 
+matUnio([],_,[]).
+matUnio(ESQ,DRE,MAT):-append([PESQ],CUAESQ,ESQ), append([PDRE],CUADRE,DRE), append(PESQ,PDRE,PF),
+                      matUnio(CUAESQ,CUADRE,MATRES),
+                      append([PF],MATRES,MAT).
 
+transposarFila([],[]).
+transposarFila(L,RES):-append([P],CUA,L), transposarFila(CUA,CUARES), append([[P]],CUARES,RES).
 
 %%%%%%%%%%%%%%%%%%%%%%
 % allDiffColumnes(T,F)
