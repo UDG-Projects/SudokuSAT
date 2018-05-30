@@ -100,7 +100,8 @@ matExtreuPrimers(MAT, LLP, LLCUES):- append([PRL], MATCUA, MAT), append([PR], CU
 % - muntem una llista amb tots els literals extrets
 % - cridem a alldif amb totes les cues.
 allDiff([[]|_],[]).
-allDiff(L,CNF):- matExtreuPrimers(L, PCOL, MAT), negat(PCOL, PCOLNEG), montaParelles(PCOLNEG, PCOLNEGCOMB),
+allDiff(L,CNF):- %matExtreuPrimers(L, PCOL, MAT), negat(PCOL, PCOLNEG), montaParelles(PCOLNEG, PCOLNEGCOMB),
+				 matTransposa(L,T), append([PCOL],MAT,T), negat(PCOL, PCOLNEG), montaParelles(PCOLNEG, PCOLNEGCOMB),
                  allDiff(MAT, CNFPARCIAL), append(PCOLNEGCOMB, CNFPARCIAL, CNF),!.
 
 
@@ -197,9 +198,10 @@ allDiffFiles([],[]).
 allDiffFiles(T,F):- append([PF],CUA,T), allDiff(PF,CNF), allDiffFiles(CUA,CNFCUA),append(CNF,CNFCUA,F),!.
 
 matTransposa([],[]).
-matTransposa(MAT,RES):- append([PF],CUA,MAT), transposarFila(PF,PFT), matTransposa(CUA,REST),append(PFT,REST,RES).% matUnio(PFT,REST,RES).
+matTransposa(MAT,RES):- append([PF],CUA,MAT), transposarFila(PF,PFT), matTransposa(CUA,REST), matUnio(PFT,REST,RES),!.
 
 matUnio([],_,[]).
+matUnio(T,[],T).
 matUnio(ESQ,DRE,MAT):-append([PESQ],CUAESQ,ESQ), append([PDRE],CUADRE,DRE), append(PESQ,PDRE,PF),
                       matUnio(CUAESQ,CUADRE,MATRES),
                       append([PF],MATRES,MAT).
@@ -211,7 +213,7 @@ transposarFila(L,RES):-append([P],CUA,L), transposarFila(CUA,CUARES), append([[P
 % allDiffColumnes(T,F)
 % Donat un Tauler,
 % -> el segon parametre es la CNF que codifica que no hi hagi repetits (allDiff) als K-dominis de cada columna
-
+allDiffColumnes(MAT,F):- matTransposa(MAT,T), allDiffFiles(T,F),!.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
