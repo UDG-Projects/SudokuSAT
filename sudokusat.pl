@@ -99,12 +99,17 @@ matExtreuPrimers(MAT, LLP, LLCUES):- append([PRL], MATCUA, MAT), append([PR], CU
 % - Extraurem el primer literal de cada k-domini
 % - muntem una llista amb tots els literals extrets
 % - cridem a alldif amb totes les cues.
-allDiff([[]|_],[]).
-allDiff(L,CNF):- %matExtreuPrimers(L, PCOL, MAT), negat(PCOL, PCOLNEG), montaParelles(PCOLNEG, PCOLNEGCOMB),
-				 matTransposa(L,T), append([PCOL],MAT,T), negat(PCOL, PCOLNEG), montaParelles(PCOLNEG, PCOLNEGCOMB),
-                 allDiff(MAT, CNFPARCIAL), append(PCOLNEGCOMB, CNFPARCIAL, CNF),!.
+allDiff(L,CNF):-matTransposa(L,T), allDiffI(T,CNF).
 
 
+%%%%%%%%%%%%%%%%
+% INMERSIÓ (AHUUUUUHA)
+% allDiffI(L,CNF)
+% Donada una llista de caselles L
+% -> CNF serà la clausla que valida que totes les caselles son diferents
+allDiffI([],[]).
+allDiffI(L,CNF):-append([PCOL],MAT,L), negat(PCOL, PCOLNEG), montaParelles(PCOLNEG, PCOLNEGCOMB),
+        allDiffI(MAT, CNFPARCIAL), append(PCOLNEGCOMB, CNFPARCIAL, CNF),!.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DONE MACARRONE!!
 % taulerSudoku(N,C,Tauler,CNF)
@@ -195,42 +200,87 @@ kdominis(T,F):- append([PF],CUA,T), append([PE],CUAFILA,PF), exactamentUn(PE,CNF
 % Donat un Tauler,
 % -> el segon parametre es la CNF que codifica que no hi hagi repetits (allDiff) als K-dominis de cada fila
 allDiffFiles([],[]).
-allDiffFiles(T,F):- append([PF],CUA,T), allDiff(PF,CNF), allDiffFiles(CUA,CNFCUA),append(CNF,CNFCUA,F),!.
+allDiffFiles(T,F):- append([PF],CUA,T),
+                    allDiff(PF,CNF),
+                    allDiffFiles(CUA,CNFCUA),
+                    append(CNF,CNFCUA,F),!.
 
-matTransposa([],[]).
-matTransposa(MAT,RES):- append([PF],CUA,MAT), transposarFila(PF,PFT), matTransposa(CUA,REST), matUnio(PFT,REST,RES),!.
+%%%%%%%%%%%%%%%%%%%%%%%%
+% matTransposa(MAT,RES)
+% Donat una matriu MAT.
+% -> RES es la matriu transposada de MAT
+matTransposa([],[]):-!.
+matTransposa(MAT,RES):- append([PF],CUA,MAT),
+                        transposarFila(PF,PFT),
+                        matTransposa(CUA,REST),
+                        matUnio(PFT,REST,RES),!.
 
-matUnio([],_,[]).
+%%%%%%%%%%%%%%%%%%%%%%
+% matUnio(ESQ,DRE,MAT)
+% Donades 2 matrius ESQ i PDRE
+% -> MAT es la unió per files de les 2 matrius
+% -> EX: matUnio([[1]],[[2],[3]],[[1,2],[3]])
+matUnio([],T,T).
 matUnio(T,[],T).
 matUnio(ESQ,DRE,MAT):-append([PESQ],CUAESQ,ESQ), append([PDRE],CUADRE,DRE), append(PESQ,PDRE,PF),
                       matUnio(CUAESQ,CUADRE,MATRES),
-                      append([PF],MATRES,MAT).
+                      append([PF],MATRES,MAT),!.
 
+%%%%%%%%%%%%%%%%%%%%%%%%
+% transposarFila(L,RES)
+% Donada una llista (fila) L
+% -> RES es el resultat de dividir la fila en columnes i retorna com una matriu
 transposarFila([],[]).
-transposarFila(L,RES):-append([P],CUA,L), transposarFila(CUA,CUARES), append([[P]],CUARES,RES).
+transposarFila(L,RES):- append([P],CUA,L),
+                        transposarFila(CUA,CUARES),
+                        append([[P]],CUARES,RES).
 
 %%%%%%%%%%%%%%%%%%%%%%
 % allDiffColumnes(T,F)
 % Donat un Tauler,
 % -> el segon parametre es la CNF que codifica que no hi hagi repetits (allDiff) als K-dominis de cada columna
-allDiffColumnes(MAT,F):- matTransposa(MAT,T), allDiffFiles(T,F),!.
+allDiffColumnes(MAT,F):- matTransposa(MAT,T),
+                         allDiffFiles(T,F),!.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 % allDiffQuadrats(T,N,F)
 % Donat un Tauler, i la mida del K-domini (que es tambe el nombre de quadrats que hi ha),
 % -> el tercer parametre es la CNF que codifica que no hi hagi repetits (allDiff) als K-dominis de cada quadrat
+allDiffQuadrats([],_,[]).
+allDiffQuadrats(T,N,F):- allDiffQuadratsI(T,N,0,F).
+
+allDiffQuadratsI(_,N,N,[]).
+allDiffQuadratsI(T,N,M,F):- X is M+1, subset(T,N,M,S), allDiff(S,CNF), allDiffQuadratsI(T,N,X,CNFX), append(CNF,CNFX,F),!.
+
+subset(T,N,Q,S):- P is truncate(sqrt(N)), X is (Q mod P)*P, Y is (Q div P)*P, extreu(T,X,Y,N,S).
+
+extreu(T,XI,YI,N,S):-ARR is truncate(sqrt(N)), XF is XI + ARR, YF is YI+ARR, extreuI(T,XI,YI,XF,YF,0,0,S).
+
+extreuI(_,_,_,_,YF,_,YF,[]). %ja ha trobat tot el quadrat
+extreuI(T,XI,YI,XF,YF,XF,Y,S):-   append([PF],CUAF,T), YSEG is Y+1,
+                                  extreuI(CUAF,XI,YI,XF,YF,0,YSEG,S).   % me passat de columnes (X) puc saltar a la linia seguent
+extreuI(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([PC], CUAC, PF),
+                                  dinsRang(XI,XF,YI,YF,X,Y), append([CUAC],CUAF,MAT), XSEG is X+1,
+                                  extreuI(MAT,XI,YI,XF,YF,XSEG,Y,Q), append([PC],Q,S),!.
+extreuI(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([PC], CUAC, PF), append([CUAC],CUAF,MAT),  X<XF, XS is X+1,
+                                  extreuI(MAT,XI,YI,XF,YF,XS,Y,S).
 
 
 
 
+dinsRang(XI,XF,YI,YF,X,Y):-  X>=XI, X<XF, Y>=YI, Y<YF.
+
+% X*X #= 9, X #>= 0.
+% X is truncate(sqrt(9)).
 
 
 %%%%%%%%%%%%%%%%%
 % resol(N,Inputs)
 % Donada la N del sudoku (NxN), i una llista d'inputs,
 % -> es mostra la solucio per pantalla si en te o es diu que no en te.
-
+resol(N,Inputs):-festauler(N,T), inicialitzar(N,Inputs,C0), codificaSudoku(N,T,C0,CNF),
+                 sat(CNF,[],M), mostra(M,N),!.
 
 
 
