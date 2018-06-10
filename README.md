@@ -1176,9 +1176,34 @@ S'ha de descartar el tall en el sat, ja que el sat interessa que torni models si
 
 ## L'us de l'append
 
+L'append és el més utilitzat per el tractament de llistes en aquesta pràctica.
 
+### Cerques
 
+L'ús de l'append per fer una cerca en un llistat per exemple de caselles (Cerca si hi ha la casella que coincideix en files i columnes a dins de IN i la pinta):
 
+```
+pintaCasella(F,C,IN) :- append(_,[c(F,C,V)|_], IN), write('|'), write(V), !.
+```
+
+### Detectar clàusula unitària
+
+Podem usar-la per detectar si hi ha una llista amb un sol element dins d'una llista.
+
+```
+decideix(L,A):- append(_,[X|_], L), append([A],[],X),!.
+```
+
+### Construir i desconstruir Llistes
+
+És molt usat en general per poder desengranar les llistes a plaer. També per construir-les.
+
+```
+combina(L, COMBINAT):- append([A,B], CUA, L),
+          					   append([A],CUA,PIVOTA),
+          					   combina(PIVOTA,ITSEG),
+                       append([[A,B]],ITSEG,COMBINAT),!.
+```
 
 # Conclusió
 
