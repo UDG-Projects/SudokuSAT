@@ -83,11 +83,6 @@ SAT!!, SUDOKU PISCINAS!!!
 
 ### Crides internes
 
-nl, write('NEM A RESOLDRE EL SUDOKU : '),nl,
-                  write('....................................'),nl,
-                  mostraSudoku(N,Inputs), taulerSudoku(N, Inputs, T, C0), codificaSudoku(N,T,C0,CNF),
-                  sat(CNF,[],M), mostra(M,N),!.
-
 - [Tauler Sudoku](tauler-sudoku)
 - [Codifica Sudoku](codifica-sudoku)
 - [Sat](sat)
@@ -1077,22 +1072,15 @@ Mostra un sudoku ja sigui complert o incomplert a partir d'una entrada per tecla
 % Mostra un sudoku expressat en format llistat de c(F,C,V) per pantalla.
 % N és el tamany del sudoku
 % IN és el sudoku representat en llistat de c(F,C,V).
-mostraSudoku(N, IN) :- pintaSeparador(N), iMostraSudoku(1,1,N,IN).
+mostraSudoku(N, IN) :- pintaSeparador(N), nl, iMostraSudoku(N,1,1,IN).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%
-% iMostraSudoku(F,C,N,IN)
-% inmersió per mostraSudoku.
-% F és la fila actual, C és la columna actual
-% N és el tamany del SUDOKU
-% IN és el llistat de caselles que té amb valor el sudoku
-% IN ha d'estar ordenada per files i columnes.
-iMostraSudoku(F,_,N,[]):- F>N, nl, !.
-iMostraSudoku(F,C,N,IN):- C>N, write('|'), nl, FS is F+1,
-                          pintaSeparador(N), iMostraSudoku(FS, 1, N, IN).
-iMostraSudoku(F,C,N,IN):- pintaCasella(F,C,IN,INSEG), CSEG is C+1,
-                          iMostraSudoku(F, CSEG, N, INSEG), !.
-iMostraSudoku(F,C,N,IN):- write('|'), write(' '), CSEG is C+1,
-                          iMostraSudoku(F, CSEG, N, IN).
+iMostraSudoku(N, F, _, _):-  F>N, !.
+iMostraSudoku(N, F, C, IN):- C > N, write('|'), nl, pintaSeparador(N), nl,
+                             FSEG is F+1, iMostraSudoku(N, FSEG, 1, IN).
+iMostraSudoku(N, F, C, IN):- pintaCasella(F,C,IN), CSEG is C+1,
+                             iMostraSudoku(N, F, CSEG, IN), !.
+iMostraSudoku(N, F, C, IN):- CSEG is C+1, write('| '),
+                             iMostraSudoku(N, F, CSEG, IN).
 ```
 
 ### Execució
@@ -1125,7 +1113,7 @@ Pinta (N+2)+(N-1) guions com una sola linia.
 %%%%%%%%%%%%%%%%%%%
 % pintaSeparador(N)
 % Pinta un separador generat amb '-' amb tamany N+2+N-1 o N*2+1 caràcters
-pintaSeparador(N):- NF is (N+2)+(N-1), iPintaSeparador(1, NF), nl.
+pintaSeparador(N):- NF is (N+2)+(N-1), iPintaSeparador(1, NF).
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 % iPintaSeparador(N, NF)
@@ -1143,9 +1131,7 @@ iPintaSeparador(N, NF):- write('-'), NSEG is N+1, iPintaSeparador(NSEG, NF).
 
 ## Pinta Casella
 
-Pinta el valor de una casella sempre que pertoqui pintar-la, és a dir sempre que la fila i la columna coincideixin amb la fila i la columna de la casella.
-
-Retorna la resta de caselles que falten per pintar. És important que si no pot pintar, que digui que no per que així aquesta branca queda inutilitzada per l'arbre de cerca del prolog.
+Cerca dins de la llista in si hi ha una casella que coincideixi amb files i columnes a partir del l'append i si hi és el pinta. Si no hi és retorna no.
 
 ### Predicat
 
@@ -1156,22 +1142,20 @@ Retorna la resta de caselles que falten per pintar. És important que si no pot 
 % F és el valor de la fila, C és el valor de la Columna
 % IN son les caselles possibles a pintar per la casella [F,C]
 % FCUA seran les caselles restants si es compleix que es pot pintar.
-pintaCasella(F,C,IN, FCUA) :- append([c(FC,CC,VC)], FCUA, IN), F=FC, C=CC,
-                              write('|'), write(VC).
+pintaCasella(F,C,IN) :- append(_,[c(F,C,V)|_], IN), write('|'), write(V), !.
 ```
 
 ### Execució
 
 ```
-| ?- pintaCasella(1,1,[c(1,1,3),c(2,2,1),c(4,4,3)], CUA).
+| ?- pintaCasella(1,1,[c(1,1,3),c(2,2,1),c(4,4,3)]).
 |3
 
-CUA = [c(2,2,1),c(4,4,3)]
+yes
 
-(15 ms) yes
-| ?- pintaCasella(1,2,[c(1,1,3),c(2,2,1),c(4,4,3)], CUA).
+| ?- pintaCasella(1,2,[c(1,1,3),c(2,2,1),c(4,4,3)]).
 
-no
+no  
 ```
 
 # Exemples i jocs de proves.
@@ -1190,7 +1174,9 @@ S'ha procurat que el prolog faci la feina que ha de fer i cap altre. Per demostr
 
 S'ha de descartar el tall en el sat, ja que el sat interessa que torni models si el cridem independentment de la resta de predicats.
 
-## Arbre de cerca del prolog.
+## L'us de l'append
+
+
 
 
 

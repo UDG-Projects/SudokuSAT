@@ -367,22 +367,15 @@ resol(N,Inputs):- nl, write('NEM A RESOLDRE EL SUDOKU : '),nl,
 % Mostra un sudoku expressat en format llistat de c(F,C,V) per pantalla.
 % N és el tamany del sudoku
 % IN és el sudoku representat en llistat de c(F,C,V).
-mostraSudoku(N, IN) :- pintaSeparador(N), iMostraSudoku(1,1,N,IN).
+mostraSudoku(N, IN) :- pintaSeparador(N), nl, iMostraSudoku(N,1,1,IN).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%
-% iMostraSudoku(F,C,N,IN)
-% inmersió per mostraSudoku.
-% F és la fila actual, C és la columna actual
-% N és el tamany del SUDOKU
-% IN és el llistat de caselles que té amb valor el sudoku
-% IN ha d'estar ordenada per files i columnes.
-iMostraSudoku(F,_,N,[]):- F>N, nl, !.
-iMostraSudoku(F,C,N,IN):- C>N, write('|'), nl, FS is F+1,
-                          pintaSeparador(N), iMostraSudoku(FS, 1, N, IN).
-iMostraSudoku(F,C,N,IN):- pintaCasella(F,C,IN,INSEG), CSEG is C+1,
-                          iMostraSudoku(F, CSEG, N, INSEG), !.
-iMostraSudoku(F,C,N,IN):- write('|'), write(' '), CSEG is C+1,
-                          iMostraSudoku(F, CSEG, N, IN).
+iMostraSudoku(N, F, _, _):-  F>N, !.
+iMostraSudoku(N, F, C, IN):- C > N, write('|'), nl, pintaSeparador(N), nl,
+                             FSEG is F+1, iMostraSudoku(N, FSEG, 1, IN).
+iMostraSudoku(N, F, C, IN):- pintaCasella(F,C,IN), CSEG is C+1,
+                             iMostraSudoku(N, F, CSEG, IN), !.
+iMostraSudoku(N, F, C, IN):- CSEG is C+1, write('| '),
+                             iMostraSudoku(N, F, CSEG, IN).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % pintaCasella(F,C,IN, FCUA)
@@ -390,13 +383,12 @@ iMostraSudoku(F,C,N,IN):- write('|'), write(' '), CSEG is C+1,
 % F és el valor de la fila, C és el valor de la Columna
 % IN son les caselles possibles a pintar per la casella [F,C]
 % FCUA seran les caselles restants si es compleix que es pot pintar.
-pintaCasella(F,C,IN, FCUA) :- append([c(FC,CC,VC)], FCUA, IN), F=FC, C=CC,
-                              write('|'), write(VC).
+pintaCasella(F,C,IN) :- append(_,[c(F,C,V)|_], IN), write('|'), write(V), !.
 
 %%%%%%%%%%%%%%%%%%%
 % pintaSeparador(N)
 % Pinta un separador generat amb '-' amb tamany N+2+N-1 o N*2+1 caràcters
-pintaSeparador(N):- NF is (N+2)+(N-1), iPintaSeparador(1, NF), nl.
+pintaSeparador(N):- NF is (N+2)+(N-1), iPintaSeparador(1, NF).
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 % iPintaSeparador(N, NF)
