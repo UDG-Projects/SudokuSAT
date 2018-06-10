@@ -360,7 +360,7 @@ resol(N,Inputs):- nl, write('NEM A RESOLDRE EL SUDOKU : '),nl,
                   mostraSudoku(N,Inputs),
                   taulerSudoku(N, Inputs, T, C0),
                   codificaSudoku(N,T,C0,CNF),
-                  sat(CNF,[],M), mostra(M,N),!.
+                  sat(CNF,[],M), mostra(M,N).
 
 %%%%%%%%%%%%%%%%%%%%%%
 % mostraSudoku(N, IN)
@@ -400,11 +400,11 @@ iPintaSeparador(N, NF):- write('-'), NSEG is N+1, iPintaSeparador(NSEG, NF).
 % Donat un Model per a un encoding d'un Sudoku de NxN, ens mostra els valors finals.
 % (s'assumeix que s'han codificat els K-dominis, etc com es requereix a la practica).
 mostra(M,N):- write('....................................'),nl,
-              pintaSeparador(N), mostraM(M,1,N).
+              pintaSeparador(N), nl, mostraM(M,1,N).
 
 mostraM(_,F,N):-N is F-1,!.
 mostraM(M,F,N):-mostraFila(M,F,1,N), write('|'), nl,
-                pintaSeparador(N), F1 is F+1, mostraM(M,F1,N).
+                pintaSeparador(N), nl, F1 is F+1, mostraM(M,F1,N).
 
 mostraFila(_,_,C,N):- C>N,!.
 mostraFila(M,F,C,N):- LB is (F-1)*N*N + (C-1)*N, UB is LB+N,
