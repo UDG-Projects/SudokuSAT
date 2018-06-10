@@ -1390,3 +1390,9 @@ combina(L, COMBINAT):- append([A,B], CUA, L),
 # Conclusió
 
 La pràctica de prolog ha sigut molt clara i fàcil d'interpretar un cop estudiat l'esquelet de la pràctica. Reconeixem que sense l'esquelet ens hi hauríem fet bastant de mal. Ens ha agradat la manera que té el prolog de treballar, com evalúa i genera l'arbre de cerca i com realitza el backtracking ell solet. És quelcom curiós i amb aplicació directe a problemes que son molt interessants.
+
+# Instrucció per generar la documentació
+
+```
+pandoc README.md -o README.pdf --from markdown --template eisvogel --listings --latex-engine=xelatex --table-of-contents
+```
