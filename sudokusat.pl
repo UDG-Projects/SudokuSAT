@@ -3,7 +3,7 @@
 % si F es satisfactible, M sera el model de F afegit a la interpretació I (a la primera crida I sera buida).
 % Assumim invariant que no hi ha literals repetits a les clausules ni la clausula buida inicialment.
 
-sat([],I,I):-     write('SAT!!'),nl,!.
+sat([],I,I):-     write('SAT!!, SUDOKU PISCINAS!!! '),nl,!.
 sat(CNF,I,M):-
     % Ha de triar un literal d’una clausula unitaria, si no n’hi ha cap, llavors un literal pendent qualsevol.
     decideix(CNF,Lit),
@@ -258,12 +258,12 @@ subset(T,N,Q,S):- P is truncate(sqrt(N)), X is (Q mod P)*P, Y is (Q div P)*P, ex
 extreu(T,XI,YI,N,S):-ARR is truncate(sqrt(N)), XF is XI + ARR, YF is YI+ARR, extreuI(T,XI,YI,XF,YF,0,0,S).
 
 extreuI(_,_,_,_,YF,_,YF,[]). %ja ha trobat tot el quadrat
-extreuI(T,XI,YI,XF,YF,XF,Y,S):-   append([PF],CUAF,T), YSEG is Y+1,
+extreuI(T,XI,YI,XF,YF,XF,Y,S):-   append([_],CUAF,T), YSEG is Y+1,
                                   extreuI(CUAF,XI,YI,XF,YF,0,YSEG,S).   % me passat de columnes (X) puc saltar a la linia seguent
 extreuI(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([PC], CUAC, PF),
                                   dinsRang(XI,XF,YI,YF,X,Y), append([CUAC],CUAF,MAT), XSEG is X+1,
                                   extreuI(MAT,XI,YI,XF,YF,XSEG,Y,Q), append([PC],Q,S),!.
-extreuI(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([PC], CUAC, PF), append([CUAC],CUAF,MAT),  X<XF, XS is X+1,
+extreuI(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([_], CUAC, PF), append([CUAC],CUAF,MAT),  X<XF, XS is X+1,
                                   extreuI(MAT,XI,YI,XF,YF,XS,Y,S).
 
 
@@ -279,22 +279,38 @@ dinsRang(XI,XF,YI,YF,X,Y):-  X>=XI, X<XF, Y>=YI, Y<YF.
 % resol(N,Inputs)
 % Donada la N del sudoku (NxN), i una llista d'inputs,
 % -> es mostra la solucio per pantalla si en te o es diu que no en te.
-resol(N,Inputs):-festauler(N,T), inicialitzar(N,Inputs,C0), codificaSudoku(N,T,C0,CNF),
-                 sat(CNF,[],M), mostra(M,N),!.
+resol(N,Inputs):- nl, write('NEM A RESOLDRE EL SUDOKU : '),nl,
+                  write('....................................'),nl,
+                  mostraParcial(N,Inputs), festauler(N,T), inicialitzar(N,Inputs,C0), codificaSudoku(N,T,C0,CNF),
+                  sat(CNF,[],M), mostra(M,N),!.
 
 
+mostraParcial(N, IN) :- pintaSeparador(N), iMostraParcial(1,1,N,IN).
 
-% Donat un Model per a un endoding d'un Sudoku de NxN, ens mostra els valors finals.
+iMostraParcial(F,C,N,[]):- F>N, nl, !.
+iMostraParcial(F,C,N,IN):- C>N, write('|'), nl, FS is F+1,  pintaSeparador(N), iMostraParcial(FS, 1, N, IN).
+iMostraParcial(F,C,N,IN):- pintaCasella(F,C,IN,INSEG), CSEG is C+1, iMostraParcial(F, CSEG, N, INSEG), !.
+iMostraParcial(F,C,N,IN):- write('|'), write(' '), CSEG is C+1, iMostraParcial(F, CSEG, N, IN).
+
+pintaCasella(F,C,IN, FCUA) :- append([c(FC,CC,VC)], FCUA, IN), F=FC, C=CC, write('|'), write(VC).
+
+pintaSeparador(N):- NF is (N+2)+(N-1), iPintaSeparador(1, NF), nl.
+
+iPintaSeparador(N, NF):- N>NF, !.
+iPintaSeparador(N, NF):- write('-'), NSEG is N+1, iPintaSeparador(NSEG, NF).
+
+
+% Donat un Model per a un encoding d'un Sudoku de NxN, ens mostra els valors finals.
 % (s'assumeix que s'han codificat els K-dominis, etc com es requereix a la practica).
 
-mostra(M,N):- write('....................................'),nl, mostraM(M,1,N).
+mostra(M,N):- write('....................................'),nl, pintaSeparador(N), mostraM(M,1,N).
 
 mostraM(_,F,N):-N is F-1,!.
-mostraM(M,F,N):-mostraFila(M,F,1,N), nl, F1 is F+1, mostraM(M,F1,N).
+mostraM(M,F,N):-mostraFila(M,F,1,N), write('|'), nl, pintaSeparador(N), F1 is F+1, mostraM(M,F1,N).
 
-mostraFila(M,F,C,N):- C>N,!.
+mostraFila(_,_,C,N):- C>N,!.
 mostraFila(M,F,C,N):-   LB is (F-1)*N*N + (C-1)*N, UB is LB+N,
-                        member(X,M),X>LB, X=<UB, V is X-LB, write(V),
+                        member(X,M),X>LB, X=<UB, V is X-LB, write('|'), write(V),
                         Cp is C+1, mostraFila(M,F,Cp,N).
 
 
