@@ -2,7 +2,6 @@
 % sat(F,I,M)
 % si F es satisfactible, M sera el model de F afegit a la interpretació I (a la primera crida I sera buida).
 % Assumim invariant que no hi ha literals repetits a les clausules ni la clausula buida inicialment.
-
 sat([],I,I):-     write('SAT!!, SUDOKU PISCINAS!!! '),nl,!.
 sat(CNF,I,M):-
     % Ha de triar un literal d’una clausula unitaria, si no n’hi ha cap, llavors un literal pendent qualsevol.
@@ -80,18 +79,6 @@ exactamentUn([],[]).
 exactamentUn([A],[[A]]).
 exactamentUn(L,CNF):- negat(L, LNEG), montaParelles(LNEG,PARELLES), append([L],PARELLES, CNF).
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DONE MACARRONE!!
-% matExtreuPrimers(MAT, LLP, LLCUES)
-% Donada una matriu, retorna per separat la primera columna i la matriu restant.
-% -> MAT És la matriu que tractem
-% -> LLP És la llista amb els elements de la primera columna de mat
-% -> LLCUES És la matriu resultant a l'extracció.
-matExtreuPrimers([], [], []).
-matExtreuPrimers(MAT, LLP, LLCUES):- append([PRL], MATCUA, MAT), append([PR], CUA, PRL),
-                                     matExtreuPrimers(MATCUA, LLPRT, LLCUEST),
-                                     append([PR], LLPRT, LLP), append([CUA], LLCUEST, LLCUES),!.
-
 %%%%%%%%%%%%%% DONE MACARRONE!!
 % allDiff(L,F)
 % Donat una llista (L) de Kdominis,
@@ -99,17 +86,17 @@ matExtreuPrimers(MAT, LLP, LLCUES):- append([PRL], MATCUA, MAT), append([PR], CU
 % - Extraurem el primer literal de cada k-domini
 % - muntem una llista amb tots els literals extrets
 % - cridem a alldif amb totes les cues.
-allDiff(L,CNF):-matTransposa(L,T), allDiffI(T,CNF).
+allDiff(L,CNF):-matTransposa(L,T), iAllDiff(T,CNF).
 
 
 %%%%%%%%%%%%%%%%
 % INMERSIÓ (AHUUUUUHA)
-% allDiffI(L,CNF)
+% iAllDiff(L,CNF)
 % Donada una llista de caselles L
 % -> CNF serà la clausla que valida que totes les caselles son diferents
-allDiffI([],[]).
-allDiffI(L,CNF):-append([PCOL],MAT,L), negat(PCOL, PCOLNEG), montaParelles(PCOLNEG, PCOLNEGCOMB),
-        allDiffI(MAT, CNFPARCIAL), append(PCOLNEGCOMB, CNFPARCIAL, CNF),!.
+iAllDiff([],[]).
+iAllDiff(L,CNF):-append([PCOL],MAT,L), negat(PCOL, PCOLNEG), montaParelles(PCOLNEG, PCOLNEGCOMB),
+        iAllDiff(MAT, CNFPARCIAL), append(PCOLNEGCOMB, CNFPARCIAL, CNF),!.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DONE MACARRONE!!
 % taulerSudoku(N,C,Tauler,CNF)
@@ -164,12 +151,11 @@ festauler(N, T):- K is N*N*N, generaLLista(1, K, LL), separaPerN(N, LL, LLN), se
 % Donat el domini de les caselles (N), i la llista d'inicialitzacions (de forma [c[1,2,5],...]),
 % -> el tercer parametre sera la CNF formada de clausules unitaries que forcen els valors corresponents
 %    a les caselles corresponents (als N-dominis corresponents)
-
- inicialitzar(_,[],[]):-!.
- inicialitzar(N,LI,CNF):- append([c(F,C,D)],Resta,LI),
-                               POS is N*N*(F-1) + (C-1)*N+D,
-                               inicialitzar(N,Resta,W),
-                               append([[POS]],W,CNF).
+inicialitzar(_,[],[]):-!.
+inicialitzar(N,LI,CNF):- append([c(F,C,D)],Resta,LI),
+                         POS is N*N*(F-1) + (C-1)*N+D,
+                         inicialitzar(N,Resta,W),
+                         append([[POS]],W,CNF).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -248,31 +234,63 @@ allDiffColumnes(MAT,F):- matTransposa(MAT,T),
 % Donat un Tauler, i la mida del K-domini (que es tambe el nombre de quadrats que hi ha),
 % -> el tercer parametre es la CNF que codifica que no hi hagi repetits (allDiff) als K-dominis de cada quadrat
 allDiffQuadrats([],_,[]).
-allDiffQuadrats(T,N,F):- allDiffQuadratsI(T,N,0,F).
+allDiffQuadrats(T,N,F):- iAllDiffQuadrats(T,N,0,F).
 
-allDiffQuadratsI(_,N,N,[]).
-allDiffQuadratsI(T,N,M,F):- X is M+1, subset(T,N,M,S), allDiff(S,CNF), allDiffQuadratsI(T,N,X,CNFX), append(CNF,CNFX,F),!.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% iAllDiffQuadrats(T,N,M,F)
+% Inmersió per allDiffQuadrats.
 
-subset(T,N,Q,S):- P is truncate(sqrt(N)), X is (Q mod P)*P, Y is (Q div P)*P, extreu(T,X,Y,N,S).
+iAllDiffQuadrats(_,N,N,[]).
+iAllDiffQuadrats(T,N,M,F):- X is M+1, subset(T,N,M,S), allDiff(S,CNF), iAllDiffQuadrats(T,N,X,CNFX), append(CNF,CNFX,F),!.
 
-extreu(T,XI,YI,N,S):-ARR is truncate(sqrt(N)), XF is XI + ARR, YF is YI+ARR, extreuI(T,XI,YI,XF,YF,0,0,S).
+%%%%%%%%%%%%%%%%%
+% subset(T,N,Q,S)
+% Serveix per extreure Un subquadrat amb el valor SUBQUADRAT.
+% T és tauler
+% N és el valor del sudoku.
+% S Serà el subset referent al subquadrat de numero subquadrat.
+% -----------------
+% | 1 | 1 | 2 | 2 |
+% | 1 | 1 | 2 | 2 |
+% | 3 | 3 | 4 | 4 |
+% | 3 | 3 | 4 | 4 |
+% -----------------
+% SUBQUADRAT pot prendre valor de 1 - N on en la matriu expressada anteriorment cada valor
+% refereix al subquadrat marcat amb els nombres de 1 a 4.
+subset(T,N,SUBQUADRAT,S):- P is truncate(sqrt(N)), X is (SUBQUADRAT mod P)*P, Y is (SUBQUADRAT div P)*P, extreu(T,X,Y,N,S).
 
-extreuI(_,_,_,_,YF,_,YF,[]). %ja ha trobat tot el quadrat
-extreuI(T,XI,YI,XF,YF,XF,Y,S):-   append([_],CUAF,T), YSEG is Y+1,
-                                  extreuI(CUAF,XI,YI,XF,YF,0,YSEG,S).   % me passat de columnes (X) puc saltar a la linia seguent
-extreuI(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([PC], CUAC, PF),
+%%%%%%%%%%%%%%%%%%%%%
+% extreu(T,XI,YI,N,S)
+% Extreu el subquadrat que estigui entre XI - XI + SQRT(N) i  YI - YI + SQRT(N) on X refereix a files i Y a columnes.
+% T és Tauler
+% XI és Fila inicial
+% YI és columna inicial
+% N és el valor del SUDOKU
+% S serà el subquadrat de tamany SQRT(N) que està entre  XI - XI + SQRT(N) i  YI - YI + SQRT(N).
+extreu(T,XI,YI,N,S):-ARR is truncate(sqrt(N)), XF is XI + ARR, YF is YI+ARR, iExtreu(T,XI,YI,XF,YF,0,0,S).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% iExtreu(T,XI,YI,XF,YF,X,Y,S)
+% Inmersió d'extreu. Retorna el subquadrat entre XI i XF, YI i YF.
+% T és Tauler
+% XI és Fila inici, XF és fila Final, X és Fila actual
+% YI és columna inici, YF és columna Final, Y és columna actual
+% S és el subquadrat format per tots els elements entre XI i XY, YI i YF.
+iExtreu(_,_,_,_,YF,_,YF,[]). %ja ha trobat tot el quadrat
+iExtreu(T,XI,YI,XF,YF,XF,Y,S):-   append([_],CUAF,T), YSEG is Y+1,
+                                  iExtreu(CUAF,XI,YI,XF,YF,0,YSEG,S).   % me passat de columnes (X) puc saltar a la linia seguent
+iExtreu(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([PC], CUAC, PF),
                                   dinsRang(XI,XF,YI,YF,X,Y), append([CUAC],CUAF,MAT), XSEG is X+1,
-                                  extreuI(MAT,XI,YI,XF,YF,XSEG,Y,Q), append([PC],Q,S),!.
-extreuI(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([_], CUAC, PF), append([CUAC],CUAF,MAT),  X<XF, XS is X+1,
-                                  extreuI(MAT,XI,YI,XF,YF,XS,Y,S).
+                                  iExtreu(MAT,XI,YI,XF,YF,XSEG,Y,Q), append([PC],Q,S),!.
+iExtreu(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([_], CUAC, PF), append([CUAC],CUAF,MAT),  X<XF, XS is X+1,
+                                  iExtreu(MAT,XI,YI,XF,YF,XS,Y,S).
 
-
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% dinsRang(XI,XF,YI,YF,X,Y)
+% Comprova que X i Y estan entre XI i XF, YI i YF
+% XI és Fila inici, XF és fila Final, X és Fila actual
+% YI és columna inici, YF és columna Final, Y és columna actual
 dinsRang(XI,XF,YI,YF,X,Y):-  X>=XI, X<XF, Y>=YI, Y<YF.
-
-% X*X #= 9, X #>= 0.
-% X is truncate(sqrt(9)).
 
 
 %%%%%%%%%%%%%%%%%
@@ -281,28 +299,54 @@ dinsRang(XI,XF,YI,YF,X,Y):-  X>=XI, X<XF, Y>=YI, Y<YF.
 % -> es mostra la solucio per pantalla si en te o es diu que no en te.
 resol(N,Inputs):- nl, write('NEM A RESOLDRE EL SUDOKU : '),nl,
                   write('....................................'),nl,
-                  mostraParcial(N,Inputs), festauler(N,T), inicialitzar(N,Inputs,C0), codificaSudoku(N,T,C0,CNF),
+                  mostraSudoku(N,Inputs), taulerSudoku(N, Inputs, T, C0), codificaSudoku(N,T,C0,CNF),
                   sat(CNF,[],M), mostra(M,N),!.
 
+%%%%%%%%%%%%%%%%%%%%%%
+% mostraSudoku(N, IN)
+% Mostra un sudoku expressat en format llistat de c(F,C,V) per pantalla.
+% N és el tamany del sudoku
+% IN és el sudoku representat en llistat de c(F,C,V).
+mostraSudoku(N, IN) :- pintaSeparador(N), iMostraSudoku(1,1,N,IN).
 
-mostraParcial(N, IN) :- pintaSeparador(N), iMostraParcial(1,1,N,IN).
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% iMostraSudoku(F,C,N,IN)
+% inmersió per mostraSudoku.
+% F és la fila actual, C és la columna actual
+% N és el tamany del SUDOKU
+% IN és el llistat de caselles que té amb valor el sudoku
+% IN ha d'estar ordenada per files i columnes.
+iMostraSudoku(F,_,N,[]):- F>N, nl, !.
+iMostraSudoku(F,C,N,IN):- C>N, write('|'), nl, FS is F+1,
+                          pintaSeparador(N), iMostraSudoku(FS, 1, N, IN).
+iMostraSudoku(F,C,N,IN):- pintaCasella(F,C,IN,INSEG), CSEG is C+1,
+                          iMostraSudoku(F, CSEG, N, INSEG), !.
+iMostraSudoku(F,C,N,IN):- write('|'), write(' '), CSEG is C+1,
+                          iMostraSudoku(F, CSEG, N, IN).
 
-iMostraParcial(F,C,N,[]):- F>N, nl, !.
-iMostraParcial(F,C,N,IN):- C>N, write('|'), nl, FS is F+1,  pintaSeparador(N), iMostraParcial(FS, 1, N, IN).
-iMostraParcial(F,C,N,IN):- pintaCasella(F,C,IN,INSEG), CSEG is C+1, iMostraParcial(F, CSEG, N, INSEG), !.
-iMostraParcial(F,C,N,IN):- write('|'), write(' '), CSEG is C+1, iMostraParcial(F, CSEG, N, IN).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% pintaCasella(F,C,IN, FCUA)
+% Pinta el valor de una casella amb el separador al davant si coincideixen F = IN[F] i C = IN[C].
+% F és el valor de la fila, C és el valor de la Columna
+% IN son les caselles possibles a pintar per la casella [F,C]
+% FCUA seran les caselles restants si es compleix que es pot pintar.
+pintaCasella(F,C,IN, FCUA) :- append([c(FC,CC,VC)], FCUA, IN), F=FC, C=CC,
+                              write('|'), write(VC).
 
-pintaCasella(F,C,IN, FCUA) :- append([c(FC,CC,VC)], FCUA, IN), F=FC, C=CC, write('|'), write(VC).
-
+%%%%%%%%%%%%%%%%%%%
+% pintaSeparador(N)
+% Pinta un separador generat amb '-' amb tamany N+2+N-1 o N*2+1 caràcters
 pintaSeparador(N):- NF is (N+2)+(N-1), iPintaSeparador(1, NF), nl.
 
+%%%%%%%%%%%%%%%%%%%%%%%%
+% iPintaSeparador(N, NF)
+% Crida inmersiva del pintaSeparador.
 iPintaSeparador(N, NF):- N>NF, !.
 iPintaSeparador(N, NF):- write('-'), NSEG is N+1, iPintaSeparador(NSEG, NF).
 
 
 % Donat un Model per a un encoding d'un Sudoku de NxN, ens mostra els valors finals.
 % (s'assumeix que s'han codificat els K-dominis, etc com es requereix a la practica).
-
 mostra(M,N):- write('....................................'),nl, pintaSeparador(N), mostraM(M,1,N).
 
 mostraM(_,F,N):-N is F-1,!.
