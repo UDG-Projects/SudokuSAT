@@ -168,9 +168,9 @@ Generar una llista de K variables on K és N^3.
 % generaLLista(P, U, LL)
 % Genera una llista de números de P fins a U i ho posa a LL
 % -> P < U.
-% -> P és l'inici
+% -> P és l inici
 % -> U és el nombre final
-% -> LL és la llista d'enters de P fins a U. [P..U]
+% -> LL és la llista d enters de P fins a U. [P..U]
 generaLLista(P, P, [P]).
 generaLLista(P, U, LL):- P < U,  K is P+1, 
                          generaLLista(K, U, R), 
@@ -929,7 +929,7 @@ Si entre el les clàusules restants es troba la clàusula buida és que s'ha tro
 % Assumim invariant que no hi ha literals repetits a les clausules ni la clausula buida inicialment.
 sat([],I,I):-     write('SAT!!, SUDOKU PISCINAS!!! '),nl,!.
 sat(CNF,I,M):-
-    % Ha de triar un literal d''una clausula unitaria, si no n\'hi ha cap, llavors un literal pendent qualsevol.
+    % Ha de triar un literal d una clausula unitaria, si no n hi ha cap, llavors un literal pendent qualsevol.
     decideix(CNF,Lit),
 
     % Simplifica la CNF amb el Lit triat (compte pq pot fallar, es a dir si troba la clausula buida fallara i fara backtraking).
