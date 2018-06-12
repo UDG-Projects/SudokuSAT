@@ -39,11 +39,13 @@ S'hi ha afegit en tot el codi una série de writes per modificar la visualitzaci
 ```
 %%%%%%%%%%%%%%%%%
 % resol(N,Inputs)
-% Donada la N del sudoku (NxN), i una llista d'inputs,
+% Donada la N del sudoku (NxN), i una llista d inputs,
 % -> es mostra la solucio per pantalla si en te o es diu que no en te.
 resol(N,Inputs):- nl, write('NEM A RESOLDRE EL SUDOKU : '),nl,
                   write('....................................'),nl,
-                  mostraSudoku(N,Inputs), taulerSudoku(N, Inputs, T, C0), codificaSudoku(N,T,C0,CNF),
+                  mostraSudoku(N,Inputs), 
+				  taulerSudoku(N, Inputs, T, C0), 
+				  codificaSudoku(N,T,C0,CNF),
                   sat(CNF,[],M), mostra(M,N).
 ```
 
@@ -137,9 +139,11 @@ La idea és simple, es genera una llista de K on K és N^3 nombres. Un cop gener
 % -> T sera una llista de N llistes de N llistes de N nombres
 %    es a dir, una llista de files de N-dominis.
 %    El primer N-domini tindra la forma [1,2,...N] i aixi successivament de fila en fila fins
-%    a l'ultim N-domini corresponent a la casella (N,N) que sera [N*N*(N-1)+1,N*N*(N-1)+2,...N*N*N]
+%    a l ultim N-domini corresponent a la casella (N,N) que sera [N*N*(N-1)+1,N*N*(N-1)+2,...N*N*N]
 % festauler(0, []). %F is N*N, K is F*N
-festauler(N, T):- K is N*N*N, generaLLista(1, K, LL), separaPerN(N, LL, LLN), separaPerN(N, LLN, T), !.
+festauler(N, T):- K is N*N*N, generaLLista(1, K, LL), 
+                  separaPerN(N, LL, LLN), 
+				  separaPerN(N, LLN, T), !.
 ```
 
 **Execució**
@@ -168,7 +172,9 @@ Generar una llista de K variables on K és N^3.
 % -> U és el nombre final
 % -> LL és la llista d'enters de P fins a U. [P..U]
 generaLLista(P, P, [P]).
-generaLLista(P, U, LL):- P < U,  K is P+1, generaLLista(K, U, R), append([P], R, LL),!.
+generaLLista(P, U, LL):- P < U,  K is P+1, 
+                         generaLLista(K, U, R), 
+						 append([P], R, LL),!.
 ```
 
 **Execució**
@@ -188,12 +194,14 @@ Donats un N i una llista de K elements, divideix la llista de K elements en X su
 ```
 %%%%%%%%%%%%%%%%%%%%% DONE MACARRONE!!
 % separaPerN(N, L, R)
-% Donada una llista L d'elements, R serà L dividida en K parts de N elements cada part.
-% -> N és el nombre d'elements que han de tenir les subllistes
+% Donada una llista L d elements, R serà L dividida en K parts de N elements cada part.
+% -> N és el nombre d elements que han de tenir les subllistes
 % -> L és la llista a tractar
 % -> R és una llista de llistes de N elements cada subllista.
 separaPerN(_, [], []).
-separaPerN(N, L, R):- treuN(N, L, EXTRETS, CUA), separaPerN(N, CUA, NOUEXTRETS), append([EXTRETS], NOUEXTRETS, R), !.
+separaPerN(N, L, R):- treuN(N, L, EXTRETS, CUA), 
+                      separaPerN(N, CUA, NOUEXTRETS), 
+					  append([EXTRETS], NOUEXTRETS, R), !.
 ```
 
 
@@ -231,12 +239,15 @@ Divideix una llista en EXTRETS i CUA on EXTRETS és una llista de N elements de 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% DONE MACARRONE!!
 % treuN(N, L, EXTRETS, CUA)
 % Divideix L en EXTRETS i CUA, on EXTRETS conté N elements de L i CUA la resta.
-% N -> nombre d'elements a extreure
-% L -> Llista d'elements a tractar
+% N -> nombre d elements a extreure
+% L -> Llista d elements a tractar
 % EXTRETS -> N elements de L en forma de LLISTA
 % CUA -> L - els N primers elements de L en forma de LLISTA
 treuN(0, L, [], L).
-treuN(N, L, EXTRETS, CUA):- K is N-1, K >= 0, append([A], B, L), treuN(K, B, NOUEX, CUA), append([A], NOUEX, EXTRETS), !.
+treuN(N, L, EXTRETS, CUA):- K is N-1, K >= 0, 
+                            append([A], B, L), 
+							treuN(K, B, NOUEX, CUA), 
+							append([A], NOUEX, EXTRETS), !.
 ```
 
 Al final tenim una matriu cúbica representada en llistes aniuades on cada casella té una llista de varibles que representen la possibilitat que hi hagi un valor en concret en aquella casella.
@@ -261,7 +272,7 @@ Aquest predicat tradueix els inputs representats en llista de c(F,C,V) en una CN
 ```
 %%%%%%%%%%%%%%%%%%%%%%
 % inicialitzar(N,LI,F)
-% Donat el domini de les caselles (N), i la llista d'inicialitzacions (de forma [c[1,2,5],...]),
+% Donat el domini de les caselles (N), i la llista d inicialitzacions (de forma [c[1,2,5],...]),
 % -> el tercer parametre sera la CNF formada de clausules unitaries que forcen els valors corresponents
 %    a les caselles corresponents (als N-dominis corresponents)
 inicialitzar(_,[],[]):-!.
@@ -289,14 +300,16 @@ Els appends següents empalmen les diferents cnf per produïr la CNF del paràme
 ```
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % codificaSudoku(N,Tauler,C0,CNF)
-% Donat el domini de les caselles (N) d'un Sudoku, el seu tauler i la CNF que l'inicialitza (C0),
+% Donat el domini de les caselles (N) d un Sudoku, el seu tauler i la CNF que l inicialitza (C0),
 % -> el quart parametre sera la CNF que codifica el Sudoku.
 codificaSudoku(N,Tauler,C0,CNF):-  kdominis(Tauler,C1),
                                    allDiffFiles(Tauler,C2),
                                    allDiffColumnes(Tauler,C3),
                                    allDiffQuadrats(Tauler,N,C4),
-                                   append(C1,C2,C12), append(C3,C4,C34),
-                                   append(C0,C12,C012), append(C012,C34,CNF).
+                                   append(C1,C2,C12), 
+								   append(C3,C4,C34),
+                                   append(C0,C12,C012),
+								   append(C012,C34,CNF).
 ```
 
 **Execució**
@@ -327,8 +340,12 @@ Reb el tauler i codifica el "exactament un" per a cada casella monta la codifica
 % -> el segon parametre es la CNF que codifica els exactamentUn per cada casella (K-domini)
 kdominis([],[]).
 kdominis([[]|T],F):-kdominis(T,F).
-kdominis(T,F):- append([PF],CUA,T), append([PE],CUAFILA,PF), exactamentUn(PE,CNF1),
-                append([CUAFILA],CUA,RESTA),kdominis(RESTA,CNFFINAL), append(CNF1,CNFFINAL,F),!.
+kdominis(T,F):- append([PF],CUA,T), 
+                append([PE],CUAFILA,PF), 
+				exactamentUn(PE,CNF1),
+                append([CUAFILA],CUA,RESTA),
+				kdominis(RESTA,CNFFINAL), 
+				append(CNF1,CNFFINAL,F),!.
 ```
 
 **Execució**
@@ -360,7 +377,9 @@ Una CNF "exactament un" que codifica un únic nombre per la primera casella d'un
 % -> el segon parametre sera la CNF que codifica que exactament una sigui certa.
 exactamentUn([],[]).
 exactamentUn([A],[[A]]).
-exactamentUn(L,CNF):- negat(L, LNEG), montaParelles(LNEG,PARELLES), append([L],PARELLES, CNF).
+exactamentUn(L,CNF):- negat(L, LNEG), 
+                      montaParelles(LNEG,PARELLES), 
+					  append([L],PARELLES, CNF).
 ```
 
 **Execució**
@@ -414,7 +433,7 @@ La idea és que a mesura que es vagin combinant les variables no es tornint a co
 montaParelles([],[]).
 montaParelles([A,B],[[A,B]]):-!.
 montaParelles(L, PARELLES):- append([_],CUA,L),
-              % [_] ja no ens importa per que ja s'ha combinat amb l'element extret.
+              % [_] ja no ens importa per que ja s ha combinat amb l element extret.
 							combina(L,PIVOTA), % [[1,2],[1,3],[1,4]]
 							montaParelles(CUA,ITSEG),% Montarà amb [2,3,4]
 							append(PIVOTA,ITSEG,PARELLES),!.
@@ -441,13 +460,14 @@ Donades una llista de variables, agafarà la primera i la combinarà amb la rest
 %%%%%%%%%%%%%%%%%%%%%
 % combina(L,COMBINAT)
 % COMBINAT és la llista resultant de combinar el primer element de L amb la resta
-% L -> és una llista d'elements a tractar
+% L -> és una llista d elements a tractar
 combina([],[]).
 combina([A],[[A]]).
 combina([A,B],[[A,B]]).
 combina(L, COMBINAT):- append([A,B], CUA, L),
 					   append([A],CUA,PIVOTA),
-					   combina(PIVOTA,ITSEG), append([[A,B]],ITSEG,COMBINAT),!.
+					   combina(PIVOTA,ITSEG), 
+					   append([[A,B]],ITSEG,COMBINAT),!.
 ```
 
 **Execució**
@@ -524,8 +544,11 @@ allDiff(L,CNF):-matTransposa(L,T), iAllDiff(T,CNF).
 % Donada una llista de caselles L
 % -> CNF serà la clausla que valida que totes les caselles son diferents
 iAllDiff([],[]).
-iAllDiff(L,CNF):-append([PCOL],MAT,L), negat(PCOL, PCOLNEG), montaParelles(PCOLNEG, PCOLNEGCOMB),
-        iAllDiff(MAT, CNFPARCIAL), append(PCOLNEGCOMB, CNFPARCIAL, CNF),!.
+iAllDiff(L,CNF):- append([PCOL],MAT,L), 
+                  negat(PCOL, PCOLNEG), 
+				  montaParelles(PCOLNEG, PCOLNEGCOMB),
+                  iAllDiff(MAT, CNFPARCIAL), 
+				  append(PCOLNEGCOMB, CNFPARCIAL, CNF),!.
 ```
 
 **Execució**
@@ -626,7 +649,9 @@ Aquesta unió és genèrica per qualsevol matriu ESQ i qualsevol Matriu DRE.
 % -> EX: matUnio([[1]],[[2],[3]],[[1,2],[3]])
 matUnio([],T,T).
 matUnio(T,[],T).
-matUnio(ESQ,DRE,MAT):-append([PESQ],CUAESQ,ESQ), append([PDRE],CUADRE,DRE), append(PESQ,PDRE,PF),
+matUnio(ESQ,DRE,MAT):-append([PESQ],CUAESQ,ESQ), 
+                      append([PDRE],CUADRE,DRE), 
+					  append(PESQ,PDRE,PF),
                       matUnio(CUAESQ,CUADRE,MATRES),
                       append([PF],MATRES,MAT),!.
 ```
@@ -821,7 +846,7 @@ extreu(T,XI,YI,N,S):- ARR is truncate(sqrt(N)),
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % iExtreu(T,XI,YI,XF,YF,X,Y,S)
-% Inmersió d'extreu. Retorna el subquadrat entre XI i XF, YI i YF.
+% Inmersió d extreu. Retorna el subquadrat entre XI i XF, YI i YF.
 % T és Tauler
 % XI és Fila inici, XF és fila Final, X és Fila actual
 % YI és columna inici, YF és columna Final, Y és columna actual
@@ -830,18 +855,20 @@ extreu(T,XI,YI,N,S):- ARR is truncate(sqrt(N)),
 % ja ha trobat tot el quadrat
 iExtreu(_,_,_,_,YF,_,YF,[]):-!.
 % Encara no he arribat a la fila que cerco.
-iExtreu(T,XI,YI,XF,YF,_,Y,S):-    Y < YI, append([_],CUAF,T), YSEG is Y+1,
+iExtreu(T,XI,YI,XF,YF,_,Y,S):-    Y < YI, append([_],CUAF,T),
+                                  YSEG is Y+1,
                                   iExtreu(CUAF,XI,YI,XF,YF,0,YSEG,S).
 % me passat de columnes (X) puc saltar a la linia seguent
 iExtreu(T,XI,YI,XF,YF,XF,Y,S):-   append([_],CUAF,T), YSEG is Y+1,
                                   iExtreu(CUAF,XI,YI,XF,YF,0,YSEG,S).
 % No me passat ni de files ni de columnes i miro si estic dins del rang (extrec)
-iExtreu(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T), append([PC], CUAC, PF),
+iExtreu(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T),
+                                  append([PC], CUAC, PF),
                                   dinsRang(XI,XF,YI,YF,X,Y),
                                   append([CUAC],CUAF,MAT), XSEG is X+1,
                                   iExtreu(MAT,XI,YI,XF,YF,XSEG,Y,Q),
                                   append([PC],Q,S),!.
-% Encara no he trobat l'inici del rang i vaig passant elements
+% Encara no he trobat l inici del rang i vaig passant elements
 iExtreu(T,XI,YI,XF,YF,X,Y,S):-    append([PF],CUAF,T),
                                   append([_], CUAC, PF),
                                   append([CUAC],CUAF,MAT),  X<XF, XS is X+1,
@@ -902,14 +929,14 @@ Si entre el les clàusules restants es troba la clàusula buida és que s'ha tro
 % Assumim invariant que no hi ha literals repetits a les clausules ni la clausula buida inicialment.
 sat([],I,I):-     write('SAT!!, SUDOKU PISCINAS!!! '),nl,!.
 sat(CNF,I,M):-
-    % Ha de triar un literal d’una clausula unitaria, si no n’hi ha cap, llavors un literal pendent qualsevol.
+    % Ha de triar un literal d''una clausula unitaria, si no n\'hi ha cap, llavors un literal pendent qualsevol.
     decideix(CNF,Lit),
 
     % Simplifica la CNF amb el Lit triat (compte pq pot fallar, es a dir si troba la clausula buida fallara i fara backtraking).
     simplif(Lit,CNF,CNFS),
 
     % crida recursiva amb la CNF i la interpretacio actualitzada
-	  append(I,[Lit],ISEG),
+	append(I,[Lit],ISEG),
     sat(CNFS,ISEG ,M).
 ```
 
@@ -1050,7 +1077,8 @@ Mostra un sudoku ja sigui complert o incomplert a partir d'una entrada per tecla
 mostraSudoku(N, IN) :- pintaSeparador(N), nl, iMostraSudoku(N,1,1,IN).
 
 iMostraSudoku(N, F, _, _):-  F>N, !.
-iMostraSudoku(N, F, C, IN):- C > N, write('|'), nl, pintaSeparador(N), nl,
+iMostraSudoku(N, F, C, IN):- C > N, write('|'), nl, 
+                             pintaSeparador(N), nl,
                              FSEG is F+1, iMostraSudoku(N, FSEG, 1, IN).
 iMostraSudoku(N, F, C, IN):- pintaCasella(F,C,IN), CSEG is C+1,
                              iMostraSudoku(N, F, CSEG, IN), !.
@@ -1096,7 +1124,8 @@ pintaSeparador(N):- NF is (N+2)+(N-1), iPintaSeparador(1, NF).
 % iPintaSeparador(N, NF)
 % Crida inmersiva del pintaSeparador.
 iPintaSeparador(N, NF):- N>NF, !.
-iPintaSeparador(N, NF):- write('-'), NSEG is N+1, iPintaSeparador(NSEG, NF).
+iPintaSeparador(N, NF):- write('-'), NSEG is N+1, 
+                         iPintaSeparador(NSEG, NF).
 ```
 
 **Execució**
@@ -1121,7 +1150,8 @@ Cerca dins de la llista in si hi ha una casella que coincideixi amb files i colu
 % F és el valor de la fila, C és el valor de la Columna
 % IN son les caselles possibles a pintar per la casella [F,C]
 % FCUA seran les caselles restants si es compleix que es pot pintar.
-pintaCasella(F,C,IN) :- append(_,[c(F,C,V)|_], IN), write('|'), write(V), !.
+pintaCasella(F,C,IN) :- append(_,[c(F,C,V)|_], IN), 
+                        write('|'), write(V), !.
 ```
 
 **Execució**
