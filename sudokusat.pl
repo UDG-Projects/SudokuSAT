@@ -46,12 +46,17 @@ simplif(Lit, [PRIMERA|CUA], CNFS) :- X is 0-Lit,
                                      append(A, [X|XS], PRIMERA),
                                      % Treure el literal negat a primera serà res
                                      append(A, XS, RES),
+									 
+									 %RES \=[], % !!!! Comprobar que no hi hagi clausula buida 
                                      % crida recursiva
-                                     simplif(Lit, CUA, CUACNFS),
-                                     % Muntem la cadena final
-                                     append([RES], CUACNFS, CNFS), !.
+									 simplif(Lit, CUA, CUACNFS),
+                                     % Muntem la cadena final 
+                                     append([RES], CUACNFS, CNFS),  !.
                                      % Crida recursiva quan no conté Lit
-simplif(Lit, [PRIMERA|CUA], CNFS) :- simplif(Lit, CUA, CUACNFS),
+simplif(Lit, [PRIMERA|CUA], CNFS) :- %PRIMERA \=[], %X is 0-Lit, \+ member(X,PRIMERA), % !!!! Mirem que no hi hagi clausula buida, també 
+									 % -> pot ser que el predicat anterior hagi fallat i per tant hem de tornar a mirar que no hi hagi 
+									 %->el numero en negatiu, en positiu no pot ser-hi perque el predicat també ha fallat 
+									 simplif(Lit, CUA, CUACNFS),
                                      % Concatenar resultats
                                      append([PRIMERA], CUACNFS, CNFS), !.
 
