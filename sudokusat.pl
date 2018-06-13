@@ -12,6 +12,7 @@ sat(CNF,I,M):-
 
     % crida recursiva amb la CNF i la interpretacio actualitzada
 	  append(I,[Lit],ISEG),
+  write(Lit),nl,
     sat(CNFS,ISEG ,M).
 
 
@@ -22,8 +23,8 @@ sat(CNF,I,M):-
 %  - si hi ha una clausula unitaria sera aquest literal, sino
 %  - un qualsevol o el seu negat.
                 % detectar clàusula unitària
-decideix(L,A):- append(_,[X|_], L),
-                append([A],[],X),!.
+decideix(L,A):-  append(_,[[A]|_],L),!.
+                %append(_,[X|_], L), append([A],[],X),!.
                         % Retorna el primer element
 decideix([PL|_], A) :- append([A],_,PL).
                        % Retorna el negat del primer element
@@ -38,27 +39,24 @@ decideix([PL|_], B) :- append([A],_,PL), B is 0-A.
 %  - treient -Lit de les clausules on hi es, si apareix la clausula buida fallara.
 simplif(_, [], []). % QUAN TINGUEM LA LLISTA BUIDA RETORNEM LA LLISTA BUIDA.
                                      % Comprovem si conté lit a primera
-simplif(Lit, [PRIMERA|CUA], CNFS) :- member(Lit, PRIMERA),
+simplif(Lit, [PRIMERA|CUA], CNFS) :- %append(_,[Lit|_],PRIMERA),!,
+                                     member(Lit, PRIMERA),!,
                                      % seguim amb la cua.
-                                     simplif(Lit, CUA, CNFS), !.
+                                     simplif(Lit, CUA, CNFS),!.
                                      % neguem el literal i el fotem a x
 simplif(Lit, [PRIMERA|CUA], CNFS) :- X is 0-Lit,
-                                     append(A, [X|XS], PRIMERA),
+                                     append(A, [X|XS], PRIMERA),!,
                                      % Treure el literal negat a primera serà res
                                      append(A, XS, RES),
-									 
-									 %RES \=[], % !!!! Comprobar que no hi hagi clausula buida 
+									                   RES \=[], % !!!! Comprobar que no hi hagi clausula buida
                                      % crida recursiva
-									 simplif(Lit, CUA, CUACNFS),
-                                     % Muntem la cadena final 
-                                     append([RES], CUACNFS, CNFS),  !.
+									                   simplif(Lit, CUA, CUACNFS),
+                                     % Muntem la cadena final
+                                     append([RES], CUACNFS, CNFS),!.
                                      % Crida recursiva quan no conté Lit
-simplif(Lit, [PRIMERA|CUA], CNFS) :- %PRIMERA \=[], %X is 0-Lit, \+ member(X,PRIMERA), % !!!! Mirem que no hi hagi clausula buida, també 
-									 % -> pot ser que el predicat anterior hagi fallat i per tant hem de tornar a mirar que no hi hagi 
-									 %->el numero en negatiu, en positiu no pot ser-hi perque el predicat també ha fallat 
-									 simplif(Lit, CUA, CUACNFS),
+simplif(Lit, [PRIMERA|CUA], CNFS) :- simplif(Lit, CUA, CUACNFS),
                                      % Concatenar resultats
-                                     append([PRIMERA], CUACNFS, CNFS), !.
+                                     append([PRIMERA], CUACNFS, CNFS),!.
 
 %%%%%%%%%%%%%%
 % negat(A,ANEG)
